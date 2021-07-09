@@ -1,8 +1,10 @@
+R"===(
+
 Root <- skip Statement* eof
 
 Fn <- KEYWORD_fn LPAREN ParamDeclList RPAREN Block
 
-VarDecl <- IDENTIFIER (EQUAL Expr)? SEMICOLON
+VarDecl <- KEYWORD_var IDENTIFIER (EQUAL Expr)? SEMICOLON
 
 # *** Block Level ***
 Statement
@@ -73,7 +75,7 @@ SuffixExpr
     <- PrimaryTypeExpr (SuffixOp / FnCallArguments)*
 
 PrimaryTypeExpr
-    <- BUILTINIDENTIFIER FnCallArguments
+    <- BUILTINCALL
      / CHAR_LITERAL
      / DOT IDENTIFIER
      / FLOAT
@@ -86,6 +88,8 @@ PrimaryTypeExpr
      / KEYWORD_true
      / STRINGLITERAL
 
+BUILTINCALL <- BUILTINIDENTIFIER FnCallArguments
+
 GroupedExpr <- LPAREN Expr RPAREN
 
 # *** Helper grammar ***
@@ -93,12 +97,10 @@ BreakLabel <- COLON IDENTIFIER
 
 BlockLabel <- IDENTIFIER COLON
 
-WhileContinueExpr <- COLON LPAREN AssignExpr RPAREN
-
 # Control flow prefixes
 IfPrefix <- KEYWORD_if LPAREN Expr RPAREN PtrPayload?
 
-WhilePrefix <- KEYWORD_while LPAREN Expr RPAREN PtrPayload? WhileContinueExpr?
+WhilePrefix <- KEYWORD_while LPAREN Expr RPAREN PtrPayload?
 
 ForPrefix <- KEYWORD_for LPAREN Expr RPAREN PtrIndexPayload
 
@@ -141,7 +143,6 @@ BitShiftOp
 AdditionOp
     <- PLUS
      / MINUS
-     / PLUS2
 
 MultiplyOp
     <- ASTERISK
@@ -168,15 +169,13 @@ ParamDeclList <- (IDENTIFIER COMMA)* IDENTIFIER?
 
 # *** Tokens ***
 INTEGER
-    <- "0b" bin_int skip
-     / "0o" oct_int skip
-     / "0x" hex_int skip
-     /      dec_int   skip
+    <- "0b" < bin_int > skip
+     / "0o" < oct_int > skip
+     / "0x" < hex_int > skip
+     /      < dec_int > skip
 
-IDENTIFIER
-    <- !keyword [A-Za-z_] [A-Za-z0-9_]* skip
-     / "@\"" string_char* "\""          skip
-BUILTINIDENTIFIER <- "@"[A-Za-z_][A-Za-z0-9_]* skip
+IDENTIFIER <- !keyword < [A-Za-z_] [A-Za-z0-9_]* > skip
+BUILTINIDENTIFIER <- "@" < [A-Za-z_][A-Za-z0-9_]* > skip
 
 CHAR_LITERAL <- "'" char_char "'" skip
 FLOAT
@@ -190,38 +189,38 @@ STRINGLITERAL
      / (line_string                 skip)+
 STRINGLITERALSINGLE <- "\"" string_char* "\"" skip
 
-eof <- !.
-bin <- [01]
-bin_ <- '_'? bin
-oct <- [0-7]
-oct_ <- '_'? oct
-hex <- [0-9a-fA-F]
-hex_ <- '_'? hex
-dec <- [0-9]
-dec_ <- '_'? dec
+~bin_int <- bin bin_*
+~oct_int <- oct oct_*
+~dec_int <- dec dec_*
+~hex_int <- hex hex_*
 
-bin_int <- bin bin_*
-oct_int <- oct oct_*
-dec_int <- dec dec_*
-hex_int <- hex hex_*
+~eof <- !.
+~bin <- [01]
+~bin_ <- '_'? bin
+~oct <- [0-7]
+~oct_ <- '_'? oct
+~hex <- [0-9a-fA-F]
+~hex_ <- '_'? hex
+~dec <- [0-9]
+~dec_ <- '_'? dec
 
-ox80_oxBF <- [\200-\277]
-oxF4 <- '\364'
-ox80_ox8F <- [\200-\217]
-oxF1_oxF3 <- [\361-\363]
-oxF0 <- '\360'
-ox90_0xBF <- [\220-\277]
-oxEE_oxEF <- [\356-\357]
-oxED <- '\355'
-ox80_ox9F <- [\200-\237]
-oxE1_oxEC <- [\341-\354]
-oxE0 <- '\340'
-oxA0_oxBF <- [\240-\277]
-oxC2_oxDF <- [\302-\337]
+~ox80_oxBF <- [\200-\277]
+~oxF4 <- '\364'
+~ox80_ox8F <- [\200-\217]
+~oxF1_oxF3 <- [\361-\363]
+~oxF0 <- '\360'
+~ox90_0xBF <- [\220-\277]
+~oxEE_oxEF <- [\356-\357]
+~oxED <- '\355'
+~ox80_ox9F <- [\200-\237]
+~oxE1_oxEC <- [\341-\354]
+~oxE0 <- '\340'
+~oxA0_oxBF <- [\240-\277]
+~oxC2_oxDF <- [\302-\337]
 
 # From https://lemire.me/blog/2018/05/09/how-quickly-can-you-check-that-a-string-is-valid-unicode-utf-8/
 
-mb_utf8_literal <-
+~mb_utf8_literal <-
        oxF4      ox80_ox8F ox80_oxBF ox80_oxBF
      / oxF1_oxF3 ox80_oxBF ox80_oxBF ox80_oxBF
      / oxF0      ox90_0xBF ox80_oxBF ox80_oxBF
@@ -231,84 +230,84 @@ mb_utf8_literal <-
      / oxE0      oxA0_oxBF ox80_oxBF
      / oxC2_oxDF ox80_oxBF
 
-ascii_char_not_nl_slash_squote <- [\000-\011\013-\046-\050-\133\135-\177]
+~ascii_char_not_nl_slash_squote <- [\000-\011\013-\046-\050-\133\135-\177]
 
-char_escape
+~char_escape
     <- "\\x" hex hex
      / "\\u{" hex+ "}"
      / "\\" [nr\\t'"]
-char_char
+~char_char
     <- mb_utf8_literal
      / char_escape
      / ascii_char_not_nl_slash_squote
 
-string_char
+~string_char
     <- char_escape
      / [^\\"\n]
 
-line_comment <- '//' ![!/][^\n]* / '////' [^\n]*
-line_string <- ("\\\\" [^\n]* [ \n]*)+
-skip <- ([ \n] / line_comment)*
+~line_comment <- '//' ![!/][^\n]* / '////' [^\n]*
+~line_string <- ("\\\\" [^\n]* [ \n]*)+
+~skip <- ([ \n] / line_comment)*
 
 
-AMPERSAND            <- '&'      ![=]      skip
-AMPERSANDEQUAL       <- '&='               skip
-ASTERISK             <- '*'      ![*%=]    skip
-ASTERISK2            <- '**'               skip
-ASTERISKEQUAL        <- '*='               skip
-ASTERISKPERCENT      <- '*%'     ![=]      skip
-ASTERISKPERCENTEQUAL <- '*%='              skip
-CARET                <- '^'      ![=]      skip
-CARETEQUAL           <- '^='               skip
-COLON                <- ':'                skip
-COMMA                <- ','                skip
-DOT                  <- '.'      ![*.?]    skip
-EQUAL                <- '='      ![>=]     skip
-EQUALEQUAL           <- '=='               skip
-EXCLAMATIONMARK      <- '!'      ![=]      skip
-EXCLAMATIONMARKEQUAL <- '!='               skip
-LARROW               <- '<'      ![<=]     skip
-LARROW2              <- '<<'               skip
-LARROWEQUAL          <- '<='               skip
-LBRACE               <- '{'                skip
-LBRACKET             <- '['                skip
-LPAREN               <- '('                skip
-MINUS                <- '-'      ![=>]     skip
-MINUSEQUAL           <- '-='               skip
-PERCENT              <- '%'      ![=]      skip
-PERCENTEQUAL         <- '%='               skip
-PIPE                 <- '|'      ![|=]     skip
-PIPEEQUAL            <- '|='               skip
-PLUS                 <- '+'      ![+=]     skip
-PLUS2                <- '++'               skip
-PLUSEQUAL            <- '+='               skip
-RARROW               <- '>'                skip
-RARROW2              <- '>>'               skip
-RARROWEQUAL          <- '>='               skip
-RBRACE               <- '}'                skip
-RBRACKET             <- ']'                skip
-RPAREN               <- ')'                skip
-SEMICOLON            <- ';'                skip
-SLASH                <- '/'      ![=]      skip
+~AMPERSAND            <- '&'      ![=]      skip
+~AMPERSANDEQUAL       <- '&='               skip
+~ASTERISK             <- '*'      ![*%=]    skip
+~ASTERISK2            <- '**'               skip
+~ASTERISKEQUAL        <- '*='               skip
+~ASTERISKPERCENT      <- '*%'     ![=]      skip
+~ASTERISKPERCENTEQUAL <- '*%='              skip
+~CARET                <- '^'      ![=]      skip
+~CARETEQUAL           <- '^='               skip
+~COLON                <- ':'                skip
+~COMMA                <- ','                skip
+~DOT                  <- '.'      ![*.?]    skip
+~EQUAL                <- '='      ![>=]     skip
+~EQUALEQUAL           <- '=='               skip
+~EXCLAMATIONMARK      <- '!'      ![=]      skip
+~EXCLAMATIONMARKEQUAL <- '!='               skip
+~LARROW               <- '<'      ![<=]     skip
+~LARROW2              <- '<<'               skip
+~LARROWEQUAL          <- '<='               skip
+~LBRACE               <- '{'                skip
+~LBRACKET             <- '['                skip
+~LPAREN               <- '('                skip
+~MINUS                <- '-'      ![=>]     skip
+~MINUSEQUAL           <- '-='               skip
+~PERCENT              <- '%'      ![=]      skip
+~PERCENTEQUAL         <- '%='               skip
+~PIPE                 <- '|'      ![|=]     skip
+~PIPEEQUAL            <- '|='               skip
+~PLUS                 <- '+'      ![+=]     skip
+~PLUSEQUAL            <- '+='               skip
+~RARROW               <- '>'                skip
+~RARROW2              <- '>>'               skip
+~RARROWEQUAL          <- '>='               skip
+~RBRACE               <- '}'                skip
+~RBRACKET             <- ']'                skip
+~RPAREN               <- ')'                skip
+~SEMICOLON            <- ';'                skip
+~SLASH                <- '/'      ![=]      skip
 
-end_of_word <- ![a-zA-Z0-9_] skip
-KEYWORD_and         <- 'and'         end_of_word
-KEYWORD_break       <- 'break'       end_of_word
-KEYWORD_continue    <- 'continue'    end_of_word
-KEYWORD_else        <- 'else'        end_of_word
-KEYWORD_export      <- 'export'      end_of_word
-KEYWORD_false       <- 'false'       end_of_word
-KEYWORD_fn          <- 'fn'          end_of_word
-KEYWORD_for         <- 'for'         end_of_word
-KEYWORD_if          <- 'if'          end_of_word
-KEYWORD_nil         <- 'nil'         end_of_word
-KEYWORD_or          <- 'or'          end_of_word
-KEYWORD_return      <- 'return'      end_of_word
-KEYWORD_test        <- 'test'        end_of_word
-KEYWORD_true        <- 'true'        end_of_word
-KEYWORD_while       <- 'while'       end_of_word
+~end_of_word <- ![a-zA-Z0-9_] skip
+~KEYWORD_and         <- 'and'         end_of_word
+~KEYWORD_break       <- 'break'       end_of_word
+~KEYWORD_continue    <- 'continue'    end_of_word
+~KEYWORD_else        <- 'else'        end_of_word
+~KEYWORD_export      <- 'export'      end_of_word
+~KEYWORD_false       <- 'false'       end_of_word
+~KEYWORD_fn          <- 'fn'          end_of_word
+~KEYWORD_for         <- 'for'         end_of_word
+~KEYWORD_if          <- 'if'          end_of_word
+~KEYWORD_nil         <- 'nil'         end_of_word
+~KEYWORD_or          <- 'or'          end_of_word
+~KEYWORD_return      <- 'return'      end_of_word
+~KEYWORD_test        <- 'test'        end_of_word
+~KEYWORD_true        <- 'true'        end_of_word
+~KEYWORD_var         <- 'var'         end_of_word
+~KEYWORD_while       <- 'while'       end_of_word
 
-keyword <- KEYWORD_and
+~keyword <- KEYWORD_and
          / KEYWORD_break
          / KEYWORD_continue / KEYWORD_else
          / KEYWORD_export
@@ -316,4 +315,6 @@ keyword <- KEYWORD_and
          / KEYWORD_nil / KEYWORD_or
          / KEYWORD_return
          / KEYWORD_test / KEYWORD_true
-         / KEYWORD_while
+         / KEYWORD_var / KEYWORD_while
+
+)==="
