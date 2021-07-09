@@ -187,7 +187,7 @@ FLOAT
 STRINGLITERAL
     <- STRINGLITERALSINGLE
      / (line_string                 skip)+
-STRINGLITERALSINGLE <- "\"" string_char* "\"" skip
+STRINGLITERALSINGLE <- "\"" < string_char* > "\"" skip
 
 ~bin_int <- bin bin_*
 ~oct_int <- oct oct_*

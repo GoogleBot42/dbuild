@@ -1,6 +1,7 @@
 #include <cpp-peglib/peglib.h>
 #include <assert.h>
 #include <iostream>
+#include <cassert>
 #include <unordered_map>
 
 #include "context.h"
@@ -56,6 +57,21 @@ int main_old(void) {
   return 0;
 }
 
+std::any readIdentifier(Context &cxt, std::any val) {
+  assert(val.type() == typeid(Identifier));
+  return cxt.currentScope->getVar(cxt, any_cast<Identifier>(val).identifier);
+}
+
+/**
+ * Returns the value of the input (reads the value if it is a refers to a variable)
+ */
+std::any getValue(Context& cxt, std::any input) {
+  if (input.type() == typeid(Identifier))
+    return readIdentifier(cxt, input);
+  else
+    return input;
+}
+
 std::any eval(Context &cxt, peg::Ast& ast) {
   const auto &nodes = ast.nodes;
   if (ast.name == "Root") {
@@ -79,6 +95,41 @@ std::any eval(Context &cxt, peg::Ast& ast) {
     cxt.builtins.at(identifier.identifier).execute(cxt, args);
     // TODO: handle returns
     return Nil();
+  } else if (ast.name == "STRINGLITERALSINGLE")
+  {
+    return ast.token_to_string();
+  } else if (ast.name == "ExprList") {
+    std::vector<std::any> exprs;
+    for (int i=0; i<ast.nodes.size(); i++) {
+      exprs.push_back(getValue(cxt, eval(cxt, *nodes[i])));
+    }
+    return exprs;
+  } else if (ast.name == "AdditionExpr") {
+    auto value = getValue(cxt, eval(cxt, *nodes[0]));
+    for (int i=1; i<nodes.size(); i+=2) {
+      int op = (*nodes[i]).choice;
+      auto v2 = getValue(cxt, eval(cxt, *nodes[i+1]));
+      // TODO: floats
+      if (op == 0) {
+        value = any_cast<long>(value) + any_cast<long>(v2);
+      } else {
+        value = any_cast<long>(value) - any_cast<long>(v2);
+      }
+    }
+    return value;
+  } else if (ast.name == "MultiplyExpr") {
+    auto value = getValue(cxt, eval(cxt, *nodes[0]));
+    for (int i=1; i<nodes.size(); i+=2) {
+      int op = (*nodes[i]).choice;
+      auto v2 = getValue(cxt, eval(cxt, *nodes[i+1]));
+      // TODO: floats
+      if (op == 0) {
+        value = any_cast<long>(value) * any_cast<long>(v2);
+      } else {
+        value = any_cast<long>(value) / any_cast<long>(v2);
+      }
+    }
+    return value;
   }
 
   std::cout << "AST Name: " << ast.name << std::endl;
@@ -94,8 +145,9 @@ int main(void) {
     #include "grammar.peg"
   );
   std::string s = R"(
-    var a = 10;
-    @print(a);
+    var a = "hello world";
+    var b = 20 + 10 + 5 - 10 * 2 / 2;
+    @print(a,b);
   )";
 
   parser.enable_ast();
