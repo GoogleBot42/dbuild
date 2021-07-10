@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 
-project(dpro)
+project(dbuild)
 
 set(THIRD_PARTY_INCLUDE_DIRS third_party)
 set(SRC_DIRS src)

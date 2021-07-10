@@ -13,23 +13,15 @@ Statement
      / LabeledStatement
      / AssignExpr SEMICOLON
 
-IfStatement
-    <- IfPrefix BlockExpr ( KEYWORD_else Payload? Statement )?
-     / IfPrefix AssignExpr ( SEMICOLON / KEYWORD_else Payload? Statement )
+IfStatement <- IfPrefix Block ( KEYWORD_else Payload? Block )?
 
 LabeledStatement <- BlockLabel? (Block / LoopStatement)
 
 LoopStatement <- ForStatement / WhileStatement
 
-ForStatement
-    <- ForPrefix BlockExpr ( KEYWORD_else Statement )?
-     / ForPrefix AssignExpr ( SEMICOLON / KEYWORD_else Statement )
+ForStatement <- ForPrefix Block
 
-WhileStatement
-    <- WhilePrefix BlockExpr ( KEYWORD_else Payload? Statement )?
-     / WhilePrefix AssignExpr ( SEMICOLON / KEYWORD_else Payload? Statement )
-
-BlockExpr <- BlockLabel? Block
+WhileStatement <- WhilePrefix Block
 
 # *** Expression Level ***
 AssignExpr <- Expr (AssignOp Expr)?
@@ -71,8 +63,7 @@ ForExpr <- ForPrefix Expr (KEYWORD_else Expr)?
 
 WhileExpr <- WhilePrefix Expr (KEYWORD_else Payload? Expr)?
 
-SuffixExpr
-    <- PrimaryTypeExpr (SuffixOp / FnCallArguments)*
+SuffixExpr <- PrimaryTypeExpr (SuffixOp / FnCallArguments)*
 
 PrimaryTypeExpr
     <- BUILTINCALL
@@ -120,7 +111,6 @@ AssignOp
      / AMPERSANDEQUAL
      / CARETEQUAL
      / PIPEEQUAL
-     / ASTERISKPERCENTEQUAL
      / EQUAL
 
 CompareOp
@@ -148,8 +138,6 @@ MultiplyOp
     <- ASTERISK
      / SLASH
      / PERCENT
-     / ASTERISK2
-     / ASTERISKPERCENT
 
 PrefixOp
     <- EXCLAMATIONMARK
@@ -163,9 +151,9 @@ SuffixOp
 FnCallArguments <- LPAREN ExprList RPAREN
 
 # Lists
-ExprList <- (Expr COMMA)* Expr?
+ExprList <- (Expr COMMA)* Expr? { no_ast_opt }
 
-ParamDeclList <- (IDENTIFIER COMMA)* IDENTIFIER?
+ParamDeclList <- (IDENTIFIER COMMA)* IDENTIFIER? { no_ast_opt }
 
 # *** Tokens ***
 INTEGER
@@ -253,10 +241,7 @@ STRINGLITERALSINGLE <- "\"" < string_char* > "\"" skip
 ~AMPERSAND            <- '&'      ![=]      skip
 ~AMPERSANDEQUAL       <- '&='               skip
 ~ASTERISK             <- '*'      ![*%=]    skip
-~ASTERISK2            <- '**'               skip
 ~ASTERISKEQUAL        <- '*='               skip
-~ASTERISKPERCENT      <- '*%'     ![=]      skip
-~ASTERISKPERCENTEQUAL <- '*%='              skip
 ~CARET                <- '^'      ![=]      skip
 ~CARETEQUAL           <- '^='               skip
 ~COLON                <- ':'                skip

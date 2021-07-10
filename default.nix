@@ -1,6 +1,6 @@
 { pkgs ? import <nixpkgs> { } }:
 pkgs.stdenv.mkDerivation rec {
-  pname = "dpro";
+  pname = "dbuild";
   version = "0.1.0";
 
   src = ./.;
@@ -20,6 +20,6 @@ pkgs.stdenv.mkDerivation rec {
 
   installPhase = ''
     mkdir -p $out/bin
-    mv dpro $out/bin
+    mv dbuild $out/bin
   '';
 }

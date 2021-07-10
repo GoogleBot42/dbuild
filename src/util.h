@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cpp-peglib/peglib.h>
+
 #include <string>
 #include <any>
 #include <vector>
@@ -33,20 +35,29 @@ public:
 class Func {
 public:
   std::shared_ptr<Scope> capturedScope;
-  // ast ptr
-  std::function<void(Context&,Args&)> nativeFunction;
+  
+  std::shared_ptr<peg::Ast> ast = nullptr;
+  std::vector<Identifier> argNames;
+
+  std::function<std::any(Context&,Args&)> nativeFunction;
 
 public:
-  Func(std::function<void(Context&,Args&)> nativeFunction) 
+  /**
+   * Create a native function
+   */
+  Func(std::function<std::any(Context&,Args&)> nativeFunction) 
     : capturedScope(nullptr), nativeFunction(nativeFunction) {}
 
-  void execute(Context& cxt, Args& args) {
-    // TODO implement AST executer
-    nativeFunction(cxt, args);
-  }
+  /**
+   * Create an interpreted function
+   */
+  Func(std::shared_ptr<peg::Ast> ast, std::vector<Identifier> argNames)
+    : ast(ast), argNames(argNames) {}
+
+  std::any execute(Context& cxt, Args& args);
 };
 
 class BuiltinFunctions {
 public:
-  static void print(Context& cxt, Args& args);
+  static std::any print(Context& cxt, Args& args);
 };
