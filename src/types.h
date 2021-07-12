@@ -96,15 +96,26 @@ public:
   Value& operator=(const Value &rhs);
   ~Value();
 
-  bool isNil();
-  bool isInt();
-  bool isFloat();
-  bool isNumber();
-  bool isBoolean();
-  bool isString();
-  bool isFunction();
-  bool isArgs();
-  bool isIdentifier();
+  void cleanup();
+
+  Value& operator=(Nil rhs);
+  Value& operator=(long rhs);
+  Value& operator=(double rhs);
+  Value& operator=(bool rhs);
+  Value& operator=(const std::string &rhs);
+  Value& operator=(const Func &rhs);
+  Value& operator=(const Args &rhs);
+  Value& operator=(const Identifier &rhs);
+
+  bool isNil() const;
+  bool isInt() const;
+  bool isFloat() const;
+  bool isNumber() const;
+  bool isBoolean() const;
+  bool isString() const;
+  bool isFunction() const;
+  bool isArgs() const;
+  bool isIdentifier() const;
 
   void assertNil(Context &cxt);
   void assertInt(Context &cxt);

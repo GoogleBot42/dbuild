@@ -53,85 +53,141 @@ Value::Value(const Identifier &identifier) : type(TypeIdentifier) {
 }
 
 Value::Value(const Value &val) {
-  type = val.type;
-  if (isNil()) {
-    value.nil = Nil();
-  } else if (isInt()) {
-    value.int_ = val.value.int_;
-  } else if (isFloat()) {
-    value.float_ = val.value.float_;
-  } else if (isBoolean()) {
-    value.bool_ = val.value.bool_;
-  } else if (isString()) {
-    value.string = new std::string(*val.value.string);
-  } else if (isFunction()) {
-    value.function = new Func(*val.value.function);
-  } else if (isArgs()) {
-    value.args = new Args(*val.value.args);
-  } else if (isIdentifier()) {
-    value.identifier = new Identifier(*val.value.identifier);
+  if (val.isNil()) {
+    *this = Nil();
+  } else if (val.isInt()) {
+    *this = val.value.int_;
+  } else if (val.isFloat()) {
+    *this = val.value.float_;
+  } else if (val.isBoolean()) {
+    *this = val.value.bool_;
+  } else if (val.isString()) {
+    *this = *val.value.string;
+  } else if (val.isFunction()) {
+    *this = *val.value.function;
+  } else if (val.isArgs()) {
+    *this = *val.value.args;
+  } else if (val.isIdentifier()) {
+    *this = *val.value.identifier;
   }
 }
 
 Value& Value::operator=(const Value &rhs) {
-  type = rhs.type;
-  if (isNil()) {
-    value.nil = Nil();
-  } else if (isInt()) {
-    value.int_ = rhs.value.int_;
-  } else if (isFloat()) {
-    value.float_ = rhs.value.float_;
-  } else if (isBoolean()) {
-    value.bool_ = rhs.value.bool_;
-  } else if (isString()) {
-    value.string = new std::string(*rhs.value.string);
-  } else if (isFunction()) {
-    value.function = new Func(*rhs.value.function);
-  } else if (isArgs()) {
-    value.args = new Args(*rhs.value.args);
-  } else if (isIdentifier()) {
-    value.identifier = new Identifier(*rhs.value.identifier);
+  cleanup();
+  if (rhs.isNil()) {
+    *this = Nil();
+  } else if (rhs.isInt()) {
+    *this = rhs.value.int_;
+  } else if (rhs.isFloat()) {
+    *this = rhs.value.float_;
+  } else if (rhs.isBoolean()) {
+    *this = rhs.value.bool_;
+  } else if (rhs.isString()) {
+    *this = *rhs.value.string;
+  } else if (rhs.isFunction()) {
+    *this = *rhs.value.function;
+  } else if (rhs.isArgs()) {
+    *this = *rhs.value.args;
+  } else if (rhs.isIdentifier()) {
+    *this = *rhs.value.identifier;
   }
   return *this;
 }
 
 Value::~Value() {
+  cleanup();
+}
+
+void Value::cleanup() {
   if (isString()) {
+    std::cerr << "string" << std::endl;
     delete value.string;
   } else if (isFunction()) {
+    std::cerr << "func" << std::endl;
     delete value.function;
   } else if (isArgs()) {
+    std::cerr << "args" << std::endl;
     delete value.args;
   } else if (isIdentifier()) {
+    std::cerr << "identifier" << std::endl;
     delete value.identifier;
   }
 }
 
-bool Value::isNil() {
+Value& Value::operator=(Nil rhs) {
+  // cleanup();
+  type = TypeNil;
+  value.nil = rhs;
+  return *this;
+}
+Value& Value::operator=(long rhs) {
+  // cleanup();
+  type = TypeInt;
+  value.int_ = rhs;
+  return *this;
+}
+Value& Value::operator=(double rhs) {
+  // cleanup();
+  type = TypeFloat;
+  value.float_ = rhs;
+  return *this;
+}
+Value& Value::operator=(bool rhs) {
+  // cleanup();
+  type = TypeBoolean;
+  value.bool_ = rhs;
+  return *this;
+}
+Value& Value::operator=(const std::string &rhs) {
+  // cleanup();
+  type = TypeString;
+  value.string = new std::string(rhs);
+  return *this;
+}
+Value& Value::operator=(const Func &rhs) {
+  // cleanup();
+  type = TypeFunction;
+  value.function = new Func(rhs);
+  return *this;
+}
+Value& Value::operator=(const Args &rhs) {
+  // cleanup();
+  type = TypeArgs;
+  value.args = new Args(rhs);
+  return *this;
+}
+Value& Value::operator=(const Identifier &rhs) {
+  // cleanup();
+  type = TypeIdentifier;
+  value.identifier = new Identifier(rhs);
+  return *this;
+}
+
+bool Value::isNil() const {
   return type == TypeNil;
 }
-bool Value::isInt() {
+bool Value::isInt() const {
   return type == TypeInt;
 }
-bool Value::isFloat() {
+bool Value::isFloat() const {
   return type == TypeFloat;
 }
-bool Value::isNumber() {
+bool Value::isNumber() const {
   return isInt() || isFloat();
 }
-bool Value::isBoolean() {
+bool Value::isBoolean() const {
   return type == TypeBoolean;
 }
-bool Value::isString() {
+bool Value::isString() const {
   return type == TypeString;
 }
-bool Value::isFunction() {
+bool Value::isFunction() const {
   return type == TypeFunction;
 }
-bool Value::isArgs() {
+bool Value::isArgs() const {
   return type == TypeArgs;
 }
-bool Value::isIdentifier() {
+bool Value::isIdentifier() const {
   return type == TypeIdentifier;
 }
 

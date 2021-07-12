@@ -51,7 +51,7 @@ Value Context::eval(peg::Ast& ast) {
     for (int i=0; i<ast.nodes.size(); i++) {
       exprs.args.push_back(getValue(eval(*nodes[i])));
     }
-    return Value(exprs);
+    return exprs;
   } else if (ast.name == "AdditionExpr") {
     Value value = getValue(eval(*nodes[0]));
     for (int i=1; i<nodes.size(); i+=2) {
@@ -59,9 +59,9 @@ Value Context::eval(peg::Ast& ast) {
       Value v2 = getValue(eval(*nodes[i+1]));
       // TODO: floats
       if (op == 0) {
-        value = Value(value.getInt(cxt) + v2.getInt(cxt));
+        value = value.getInt(cxt) + v2.getInt(cxt);
       } else {
-        value = Value(value.getInt(cxt) - v2.getInt(cxt));
+        value = value.getInt(cxt) - v2.getInt(cxt);
       }
     }
     return value;
@@ -72,9 +72,9 @@ Value Context::eval(peg::Ast& ast) {
       Value v2 = getValue(eval(*nodes[i+1]));
       // TODO: floats
       if (op == 0) {
-        value = Value(value.getInt(cxt) * v2.getInt(cxt));
+        value = value.getInt(cxt) * v2.getInt(cxt);
       } else {
-        value = Value(value.getInt(cxt) / v2.getInt(cxt));
+        value = value.getInt(cxt) / v2.getInt(cxt);
       }
     }
     return value;
@@ -84,22 +84,22 @@ Value Context::eval(peg::Ast& ast) {
     auto v1 = currentScope->getVar(*this, name);
     int op = (*nodes[1]).choice;
     auto v2 = getValue(eval(*nodes[2]));
-    Value result = Value(Nil());
+    Value result = Nil();
     // TODO: floats
     if (op == 0) {
-      result = Value(v1.getInt(cxt) * v2.getInt(cxt));
+      result = v1.getInt(cxt) * v2.getInt(cxt);
     } else if (op == 1) {
-      result = Value(v1.getInt(cxt) % v2.getInt(cxt));
+      result = v1.getInt(cxt) % v2.getInt(cxt);
     } else if (op == 2) {
-      result = Value(v1.getInt(cxt) + v2.getInt(cxt));
+      result = v1.getInt(cxt) + v2.getInt(cxt);
     } else if (op == 3) {
-      result = Value(v1.getInt(cxt) - v2.getInt(cxt));
+      result = v1.getInt(cxt) - v2.getInt(cxt);
     } else if (op == 4) {
-      result = Value(v1.getInt(cxt) & v2.getInt(cxt));
+      result = v1.getInt(cxt) & v2.getInt(cxt);
     } else if (op == 5) {
-      result = Value(v1.getInt(cxt) ^ v2.getInt(cxt));
+      result = v1.getInt(cxt) ^ v2.getInt(cxt);
     } else if (op == 6) {
-      result = Value(v1.getInt(cxt) | v2.getInt(cxt));
+      result = v1.getInt(cxt) | v2.getInt(cxt);
     } else if (op == 7) {
       result = v2;
     }
@@ -141,7 +141,7 @@ Value Context::eval(peg::Ast& ast) {
     }
   } else if (ast.name == "Block") {
     // TODO create new scope
-    Value result = Value(Nil());
+    Value result = Nil();
     for (int i=0; i<ast.nodes.size(); i++) {
       result = eval(*nodes[i]);
     }
