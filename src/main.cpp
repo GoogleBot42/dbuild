@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 #include "context.h"
-#include "util.h"
+#include "types.h"
 
 int main(void) {
   peg::parser parser(
@@ -26,11 +26,11 @@ int main(void) {
     } else {
       @print("neigh");
     }
-    a = 10;
-    while(a > 0) {
-      a -= 1;
-      @print(a);
-    }
+    // a = 10000000;
+    // while(a > 0) {
+    //   a -= 1;
+    //   // @print(a);
+    // }
     var hello = fn(abc) {
       @print(abc);
     };
