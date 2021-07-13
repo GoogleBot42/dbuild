@@ -67,7 +67,6 @@ SuffixExpr <- PrimaryTypeExpr (SuffixOp / FnCallArguments)*
 
 PrimaryTypeExpr
     <- BUILTINCALL
-     / CHAR_LITERAL
      / DOT IDENTIFIER
      / FLOAT
      / Fn
@@ -156,21 +155,14 @@ ExprList <- (Expr COMMA)* Expr? { no_ast_opt }
 ParamDeclList <- (IDENTIFIER COMMA)* IDENTIFIER? { no_ast_opt }
 
 # *** Tokens ***
-INTEGER
-    <- "0b" < bin_int > skip
-     / "0o" < oct_int > skip
-     / "0x" < hex_int > skip
-     /      < dec_int > skip
+INTEGER <- < dec_int > skip
 
 IDENTIFIER <- !keyword < [A-Za-z_] [A-Za-z0-9_]* > skip
 BUILTINIDENTIFIER <- "@" < [A-Za-z_][A-Za-z0-9_]* > skip
 
-CHAR_LITERAL <- "'" char_char "'" skip
 FLOAT
-    <- "0x" hex_int "." hex_int ([pP] [-+]? dec_int)? skip
-     /      dec_int "." dec_int ([eE] [-+]? dec_int)? skip
-     / "0x" hex_int "."? [pP] [-+]? dec_int skip
-     /      dec_int "."? [eE] [-+]? dec_int skip
+    <- < dec_int "." dec_int ([eE] [-+]? dec_int)? > skip
+     / < dec_int "."? [eE] [-+]? dec_int > skip
 
 STRINGLITERAL
     <- STRINGLITERALSINGLE

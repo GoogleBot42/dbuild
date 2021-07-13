@@ -35,6 +35,8 @@ int main(void) {
       @print(abc);
     };
     hello("world");
+    a = 0.1 / 100;
+    @print(a);
   )";
 
   parser.enable_ast();

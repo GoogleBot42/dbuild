@@ -7,7 +7,7 @@ Value Func::execute(Context& cxt, Args& args) {
     return nativeFunction(cxt, args);
   } else {
     // TODO create scope
-    Value result = Value(Nil());
+    Value result = Value(cxt, Nil());
     for (int i=0; i<args.args.size(); i++) {
       cxt.currentScope->writeVar(cxt, argNames[i].identifier, args.args[i]);
     }
@@ -17,32 +17,32 @@ Value Func::execute(Context& cxt, Args& args) {
   }
 }
 
-Value::Value(Nil nil) : type(TypeNil) {
+Value::Value(Context &cxt, Nil nil) : cxt(cxt), type(TypeNil) {
   value.nil = Nil();
 }
-Value::Value(long int_) : type(TypeInt) {
+Value::Value(Context &cxt, long int_) : cxt(cxt), type(TypeInt) {
   value.int_ = int_;
 }
-Value::Value(double float_) : type(TypeFloat) {
+Value::Value(Context &cxt, double float_) : cxt(cxt), type(TypeFloat) {
   value.float_ = float_;
 }
-Value::Value(bool bool_) : type(TypeBoolean) {
+Value::Value(Context &cxt, bool bool_) : cxt(cxt), type(TypeBoolean) {
   value.bool_ = bool_;
 }
-Value::Value(const std::string &string) : type(TypeString) {
+Value::Value(Context &cxt, const std::string &string) : cxt(cxt), type(TypeString) {
   value.string = new std::string(string);
 }
-Value::Value(const Func &function) : type(TypeFunction) {
+Value::Value(Context &cxt, const Func &function) : cxt(cxt), type(TypeFunction) {
   value.function = new Func(function);
 }
-Value::Value(const Args &args) : type(TypeArgs) {
+Value::Value(Context &cxt, const Args &args) : cxt(cxt), type(TypeArgs) {
   value.args = new Args(args);
 }
-Value::Value(const Identifier &identifier) : type(TypeIdentifier) {
+Value::Value(Context &cxt, const Identifier &identifier) : cxt(cxt), type(TypeIdentifier) {
   value.identifier = new Identifier(identifier);
 }
 
-Value::Value(const Value &val) {
+Value::Value(const Value &val) : cxt(val.cxt) {
   if (val.isNil()) {
     *this = Nil();
   } else if (val.isInt()) {
@@ -178,87 +178,198 @@ bool Value::isIdentifier() const {
   return type == TypeIdentifier;
 }
 
-void Value::assertNil(Context &cxt) {
+void Value::assertNil(Context &cxt) const {
   if (!isNil()) {
     cxt.error("value is not nil");
   }
 }
-void Value::assertInt(Context &cxt) {
+void Value::assertInt(Context &cxt) const {
   if (!isInt()) {
     cxt.error("value is not an integer");
   }
 }
-void Value::assertFloat(Context &cxt) {
+void Value::assertFloat(Context &cxt) const {
   if (!isFloat()) {
     cxt.error("value is not a float");
   }
 }
-void Value::assertNumber(Context &cxt) {
+void Value::assertNumber(Context &cxt) const {
   if (!isNumber()) {
     cxt.error("value is not a number");
   }
 }
-void Value::assertBoolean(Context &cxt) {
+void Value::assertBoolean(Context &cxt) const {
   if (!isBoolean()) {
     cxt.error("value is not a boolean");
   }
 }
-void Value::assertString(Context &cxt) {
+void Value::assertString(Context &cxt) const {
   if (!isString()) {
     cxt.error("value is not a string");
   }
 }
-void Value::assertFunction(Context &cxt) {
+void Value::assertFunction(Context &cxt) const {
   if (!isFunction()) {
     cxt.error("value is not a function");
   }
 }
-void Value::assertArgs(Context &cxt) {
+void Value::assertArgs(Context &cxt) const {
   if (!isArgs()) {
     cxt.error("value is not arguments");
   }
 }
-void Value::assertIdentifier(Context &cxt) {
+void Value::assertIdentifier(Context &cxt) const {
   if (!isIdentifier()) {
     cxt.error("value is not identifier");
   }
 }
 
-Nil Value::getNil(Context &cxt) {
+Nil Value::getNil(Context &cxt) const {
   assertNil(cxt);
   return value.nil;
 }
-long Value::getInt(Context &cxt) {
+long Value::getInt(Context &cxt) const {
   assertNumber(cxt);
   if (isFloat())
     return (long)value.float_;
   else
     return value.int_;
 }
-double Value::getFloat(Context &cxt) {
+double Value::getFloat(Context &cxt) const {
   assertNumber(cxt);
   if (isInt())
     return (double)value.int_;
   else
     return value.float_;
 }
-bool Value::getBoolean(Context &cxt) {
+bool Value::getBoolean(Context &cxt) const {
   assertBoolean(cxt);
   return value.bool_;
 }
-std::string Value::getString(Context &cxt) {
+std::string Value::getString(Context &cxt) const {
   assertString(cxt);
   return *value.string;
 }
-Func Value::getFunction(Context &cxt) {
+Func Value::getFunction(Context &cxt) const {
   assertFunction(cxt);
   return *value.function;
 }
-Args Value::getArgs(Context &cxt) {
+Args Value::getArgs(Context &cxt) const {
   assertArgs(cxt);
   return *value.args;
 }
-Identifier Value::getIdentifier(Context &cxt) {
+Identifier Value::getIdentifier(Context &cxt) const {
   assertIdentifier(cxt);
   return *value.identifier;
+}
+
+Value Value::operator+(const Value &rhs) const {
+  assertNumber(cxt);
+  rhs.assertNumber(cxt);
+  if (isFloat() || rhs.isFloat()) {
+    return Value(cxt, getFloat(cxt) + rhs.getFloat(cxt));
+  } else {
+    return Value(cxt, getInt(cxt) + rhs.getInt(cxt));
+  }
+}
+Value Value::operator-(const Value &rhs) const {
+  assertNumber(cxt);
+  rhs.assertNumber(cxt);
+  if (isFloat() || rhs.isFloat()) {
+    return Value(cxt, getFloat(cxt) - rhs.getFloat(cxt));
+  } else {
+    return Value(cxt, getInt(cxt) - rhs.getInt(cxt));
+  }
+}
+Value Value::operator*(const Value &rhs) const {
+  assertNumber(cxt);
+  rhs.assertNumber(cxt);
+  if (isFloat() || rhs.isFloat()) {
+    return Value(cxt, getFloat(cxt) * rhs.getFloat(cxt));
+  } else {
+    return Value(cxt, getInt(cxt) * rhs.getInt(cxt));
+  }
+}
+Value Value::operator/(const Value &rhs) const {
+  assertNumber(cxt);
+  rhs.assertNumber(cxt);
+  if (isFloat() || rhs.isFloat()) {
+    return Value(cxt, getFloat(cxt) / rhs.getFloat(cxt));
+  } else {
+    return Value(cxt, getInt(cxt) / rhs.getInt(cxt));
+  }
+}
+Value Value::operator%(const Value &rhs) const {
+  assertInt(cxt);
+  rhs.assertInt(cxt);
+  return Value(cxt, getInt(cxt) % rhs.getInt(cxt));
+}
+Value Value::operator&(const Value &rhs) const {
+  assertInt(cxt);
+  rhs.assertInt(cxt);
+  return Value(cxt, getInt(cxt) & rhs.getInt(cxt));
+}
+Value Value::operator^(const Value &rhs) const {
+  assertInt(cxt);
+  rhs.assertInt(cxt);
+  return Value(cxt, getInt(cxt) ^ rhs.getInt(cxt));
+}
+Value Value::operator|(const Value &rhs) const {
+  assertInt(cxt);
+  rhs.assertInt(cxt);
+  return Value(cxt, getInt(cxt) | rhs.getInt(cxt));
+}
+Value Value::operator==(const Value &rhs) const {
+  assertNumber(cxt);
+  rhs.assertNumber(cxt);
+  if (isFloat() || rhs.isFloat()) {
+    return Value(cxt, getFloat(cxt) == rhs.getFloat(cxt));
+  } else {
+    return Value(cxt, getInt(cxt) == rhs.getInt(cxt));
+  }
+}
+Value Value::operator!=(const Value &rhs) const {
+  assertNumber(cxt);
+  rhs.assertNumber(cxt);
+  if (isFloat() || rhs.isFloat()) {
+    return Value(cxt, getFloat(cxt) != rhs.getFloat(cxt));
+  } else {
+    return Value(cxt, getInt(cxt) != rhs.getInt(cxt));
+  }
+}
+Value Value::operator<(const Value &rhs) const {
+  assertNumber(cxt);
+  rhs.assertNumber(cxt);
+  if (isFloat() || rhs.isFloat()) {
+    return Value(cxt, getFloat(cxt) < rhs.getFloat(cxt));
+  } else {
+    return Value(cxt, getInt(cxt) < rhs.getInt(cxt));
+  }
+}
+Value Value::operator>(const Value &rhs) const {
+  assertNumber(cxt);
+  rhs.assertNumber(cxt);
+  if (isFloat() || rhs.isFloat()) {
+    return Value(cxt, getFloat(cxt) > rhs.getFloat(cxt));
+  } else {
+    return Value(cxt, getInt(cxt) > rhs.getInt(cxt));
+  }
+}
+Value Value::operator<=(const Value &rhs) const {
+  assertNumber(cxt);
+  rhs.assertNumber(cxt);
+  if (isFloat() || rhs.isFloat()) {
+    return Value(cxt, getFloat(cxt) <= rhs.getFloat(cxt));
+  } else {
+    return Value(cxt, getInt(cxt) <= rhs.getInt(cxt));
+  }
+}
+Value Value::operator>=(const Value &rhs) const {
+  assertNumber(cxt);
+  rhs.assertNumber(cxt);
+  if (isFloat() || rhs.isFloat()) {
+    return Value(cxt, getFloat(cxt) >= rhs.getFloat(cxt));
+  } else {
+    return Value(cxt, getInt(cxt) >= rhs.getInt(cxt));
+  }
 }

@@ -81,16 +81,17 @@ protected:
 
   Type type = TypeNil;
   TypeValues value;
+  Context &cxt;
 
 public:
-  Value(Nil nil);
-  Value(long int_);
-  Value(double float_);
-  Value(bool bool_);
-  Value(const std::string &string);
-  Value(const Func &function);
-  Value(const Args &args);
-  Value(const Identifier &identifier);
+  Value(Context &cxt, Nil nil);
+  Value(Context &cxt, long int_);
+  Value(Context &cxt, double float_);
+  Value(Context &cxt, bool bool_);
+  Value(Context &cxt, const std::string &string);
+  Value(Context &cxt, const Func &function);
+  Value(Context &cxt, const Args &args);
+  Value(Context &cxt, const Identifier &identifier);
 
   Value(const Value &value);
   Value& operator=(const Value &rhs);
@@ -117,22 +118,37 @@ public:
   bool isArgs() const;
   bool isIdentifier() const;
 
-  void assertNil(Context &cxt);
-  void assertInt(Context &cxt);
-  void assertFloat(Context &cxt);
-  void assertNumber(Context &cxt);
-  void assertBoolean(Context &cxt);
-  void assertString(Context &cxt);
-  void assertFunction(Context &cxt);
-  void assertArgs(Context &cxt);
-  void assertIdentifier(Context &cxt);
+  void assertNil(Context &cxt) const;
+  void assertInt(Context &cxt) const;
+  void assertFloat(Context &cxt) const;
+  void assertNumber(Context &cxt) const;
+  void assertBoolean(Context &cxt) const;
+  void assertString(Context &cxt) const;
+  void assertFunction(Context &cxt) const;
+  void assertArgs(Context &cxt) const;
+  void assertIdentifier(Context &cxt) const;
 
-  Nil getNil(Context &cxt);
-  long getInt(Context &cxt);
-  double getFloat(Context &cxt);
-  bool getBoolean(Context &cxt);
-  std::string getString(Context &cxt);
-  Func getFunction(Context &cxt);
-  Args getArgs(Context &cxt);
-  Identifier getIdentifier(Context &cxt);
+  Nil getNil(Context &cxt) const;
+  long getInt(Context &cxt) const;
+  double getFloat(Context &cxt) const;
+  bool getBoolean(Context &cxt) const;
+  std::string getString(Context &cxt) const;
+  Func getFunction(Context &cxt) const;
+  Args getArgs(Context &cxt) const;
+  Identifier getIdentifier(Context &cxt) const;
+
+  Value operator+(const Value &rhs) const;
+  Value operator-(const Value &rhs) const;
+  Value operator*(const Value &rhs) const;
+  Value operator/(const Value &rhs) const;
+  Value operator%(const Value &rhs) const;
+  Value operator&(const Value &rhs) const;
+  Value operator^(const Value &rhs) const;
+  Value operator|(const Value &rhs) const;
+  Value operator==(const Value &rhs) const;
+  Value operator!=(const Value &rhs) const;
+  Value operator<(const Value &rhs) const;
+  Value operator>(const Value &rhs) const;
+  Value operator<=(const Value &rhs) const;
+  Value operator>=(const Value &rhs) const;
 };

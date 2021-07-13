@@ -20,10 +20,12 @@ Value BuiltinFunctions::print(Context& cxt, Args& args) {
         std::cout << "false" << '\t';
     } else if (var.isNil()) {
       std::cout << "nil" << '\t';
+    } else if (var.isFloat()) {
+      std::cout << var.getFloat(cxt) << std::endl;
     } else {
       cxt.error("Attempt to print unsupported type");
     }
   }
   std::cout << std::endl;
-  return Nil();
+  return Value(cxt, Nil());
 }
