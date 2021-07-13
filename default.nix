@@ -10,13 +10,7 @@ pkgs.stdenv.mkDerivation rec {
     pkgs.gdb
   ];
 
-  configurePhase = ''
-    cmake .
-  '';
-
-  buildPhase = ''
-    make
-  '';
+  nativeBuildInputs = [ pkgs.cmake ];
 
   installPhase = ''
     mkdir -p $out/bin

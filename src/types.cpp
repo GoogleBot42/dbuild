@@ -2,16 +2,6 @@
 
 #include "context.h"
 
-// Args Args::toArgs(Context& cxt, Value input) {
-//   Args args;
-//   if (input.type() == typeid(std::vector<std::any>)) {
-//     args.args = std::any_cast<std::vector<std::any>>(input);
-//   } else {
-//     cxt.error("Unimplemented toArgs");
-//   }
-//   return args;
-// }
-
 Value Func::execute(Context& cxt, Args& args) {
   if (ast == nullptr) {
     return nativeFunction(cxt, args);
@@ -100,64 +90,61 @@ Value::~Value() {
 
 void Value::cleanup() {
   if (isString()) {
-    std::cerr << "string" << std::endl;
     delete value.string;
   } else if (isFunction()) {
-    std::cerr << "func" << std::endl;
     delete value.function;
   } else if (isArgs()) {
-    std::cerr << "args" << std::endl;
     delete value.args;
   } else if (isIdentifier()) {
-    std::cerr << "identifier" << std::endl;
     delete value.identifier;
   }
+  type = TypeNil;
 }
 
 Value& Value::operator=(Nil rhs) {
-  // cleanup();
+  cleanup();
   type = TypeNil;
   value.nil = rhs;
   return *this;
 }
 Value& Value::operator=(long rhs) {
-  // cleanup();
+  cleanup();
   type = TypeInt;
   value.int_ = rhs;
   return *this;
 }
 Value& Value::operator=(double rhs) {
-  // cleanup();
+  cleanup();
   type = TypeFloat;
   value.float_ = rhs;
   return *this;
 }
 Value& Value::operator=(bool rhs) {
-  // cleanup();
+  cleanup();
   type = TypeBoolean;
   value.bool_ = rhs;
   return *this;
 }
 Value& Value::operator=(const std::string &rhs) {
-  // cleanup();
+  cleanup();
   type = TypeString;
   value.string = new std::string(rhs);
   return *this;
 }
 Value& Value::operator=(const Func &rhs) {
-  // cleanup();
+  cleanup();
   type = TypeFunction;
   value.function = new Func(rhs);
   return *this;
 }
 Value& Value::operator=(const Args &rhs) {
-  // cleanup();
+  cleanup();
   type = TypeArgs;
   value.args = new Args(rhs);
   return *this;
 }
 Value& Value::operator=(const Identifier &rhs) {
-  // cleanup();
+  cleanup();
   type = TypeIdentifier;
   value.identifier = new Identifier(rhs);
   return *this;

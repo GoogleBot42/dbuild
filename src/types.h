@@ -79,7 +79,7 @@ protected:
     Identifier *identifier;
   };
 
-  Type type;
+  Type type = TypeNil;
   TypeValues value;
 
 public:
